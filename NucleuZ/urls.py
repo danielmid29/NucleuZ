@@ -22,6 +22,7 @@ from .services import send_invoice
 from .services import table_details
 from .services import dashboard
 from .services import template
+from .services import invoice_api
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,3 +39,6 @@ urlpatterns = [
     path('dashboard', dashboard.get_dashboard),
     path('template', template.save_template),
 ]
+
+invoice_api.runScheduler()
+print('inside')

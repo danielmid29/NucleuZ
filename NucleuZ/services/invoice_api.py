@@ -31,6 +31,7 @@ cipher_suite = Fernet(key)
 def get_access_token(client_id, client_secret, code, nrt, cpt):
     global lrt
     global access_token
+    global time
 
     redirect_uri = 'http://127.0.0.1:8000/'
     grant_type= 'authorization_code'
@@ -272,7 +273,7 @@ def check_new_invoice():
 
 def runScheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(check_new_invoice, 'interval', seconds = 60)
+    scheduler.add_job(check_new_invoice, 'interval', seconds = 120)
     scheduler.start()
     return True
 
