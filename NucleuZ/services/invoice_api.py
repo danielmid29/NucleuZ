@@ -14,11 +14,14 @@ import json
 from bson.json_util import dumps
 from cryptography.fernet import Fernet
 from .send_invoice import send_invoice
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from bson import ObjectId
 import base64
 
 access_token=""
+time : datetime = datetime.now()
 lrt=""
 
 
@@ -76,20 +79,25 @@ def get_access_token(client_id, client_secret, code, nrt, cpt):
         raise  Exception(f"error while getting access token : {err}")
         
     data = json.loads(response.text)
-    print(data)
     access_token = data['access_token']
-    print(access_token)
+    time = datetime.now()
 
 
 
 
 def get_invoice_data_api(id, api_json, retry :bool):
-        
-    try:
-        get_access_token(api_json['client_id'],api_json['client_secret'],api_json['scope_code'],api_json['nrt'],api_json['cpt'] )
-    except Exception as e:
-        print(e)
-        raise Exception(e)
+
+    current_time = datetime.now()
+    difference = current_time - time
+
+    print(difference.total_seconds())
+
+    if access_token == "" or difference.total_seconds() > 3600 :
+        try:
+            get_access_token(api_json['client_id'],api_json['client_secret'],api_json['scope_code'],api_json['nrt'],api_json['cpt'] )
+        except Exception as e:
+            print(e)
+            raise Exception(f"S{e}")
 
     
 
@@ -215,7 +223,7 @@ def get_invoice_details(request):
 
 
 
-def check_new_invoice(request: HttpRequest):
+def check_new_invoice():
     api_data = api_collection.find_one({"api_name":'ZOHO'})
     api_json = json.loads(dumps(api_data))
 
@@ -265,6 +273,11 @@ def check_new_invoice(request: HttpRequest):
     return JsonResponse({"error": 'str(e)'}, status=status.HTTP_204_NO_CONTENT, safe=False)
 
 
+
+def runScheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(check_new_invoice, 'interval', seconds = 30)
+    scheduler.start()
 
 @api_view(['POST'])
 def invoice_api(request: HttpRequest):

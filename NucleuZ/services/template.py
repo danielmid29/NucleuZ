@@ -14,6 +14,8 @@ import requests
 import json
 from bson.json_util import dumps
 from cryptography.fernet import Fernet
+from datetime import datetime
+import datetime as dt
 
 
 
@@ -40,7 +42,6 @@ def get_template_with_details(request :HttpRequest):
     id = request.GET['id']
     api = request.GET['api']
     
-
 
     template = template_collection.find_one({'template_id': 1})
     

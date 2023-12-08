@@ -4,6 +4,6 @@ class NucleuzConfig(AppConfig):
     name = 'NucleuZ'
 
     def ready(self):
-        from .services import send_invoice
+        from .services import invoice_api
 
-        send_invoice.runScheduler()
+        invoice_api.runScheduler()

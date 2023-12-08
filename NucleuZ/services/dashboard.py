@@ -21,17 +21,19 @@ def get_dashboard(request):
     
     invoice_count = invoice_collection.count_documents(filter={})
 
-    message_success_count = message_collection.count_documents(filter={"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}]})
+    message_success_count = message_collection.count_documents(filter={"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}]})
     message_failed_count = message_collection.count_documents(filter={"$or":[{"status":"FAILED"}]})
     
+    
+
     enabled_api = api_collection.count_documents(filter={"status": "enabled"})
 
     feedbacks = feedback_collection.count_documents(filter={})
 
     past_7_date = datetime.now() - dt.timedelta(days=7)
     
-    message_success_graph_data = message_collection.find({"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}], "delivery_time":{"$gte":past_7_date}})
-    message_failed_graph_data = message_collection.find({"$or":[{"status":"FAILED"}], "delivery_time":{"$gte":past_7_date}})
+    message_success_graph_data = message_collection.find({"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}], "date":{"$gte":past_7_date}})
+    message_failed_graph_data = message_collection.find({"$or":[{"status":"FAILED"}], "date":{"$gte":past_7_date}})
 
     response = {
         "invoice": invoice_count,
@@ -50,7 +52,7 @@ def get_graph_data(data):
     count = 0 
     comp_date = ""
     for message in list(data):
-        date = message['delivery_time']
+        date = message['date']
         date_str = str(date)
         date_str =  date_str[0:10]
 

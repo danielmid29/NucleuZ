@@ -28,7 +28,7 @@ def send_invoice(invoices):
 
 
     for invoice in invoices:
-        url = f"http://localhost:3000/invoice?id={invoice['invoice_number']}&at={invoice['api']}"
+        url = f"http://nucleuz.s3-website.ap-south-1.amazonaws.com/invoice?id={invoice['invoice_number']}&at={invoice['api']}"
         message = 'This is your message'
 
 
@@ -38,7 +38,7 @@ def send_invoice(invoices):
         api_key = os.getenv('API_KEY', 'Ts/L7qVz8wSHerD5CZOO2segTYNsP6zMw/WzhdBxaAgGA0hu6dBphQ1UjOsVZlFL5dmLWR7ekMpR2alx44l8MA==')
         phone_number = os.getenv('PHONE_NUMBER', '918608003636')
 
-        message = f"Your asfhdfgd fg df invoice {invoice['customer_name']} test {url}"
+        message = f"Your package {invoice['customer_name']} test {url}"
         message_type = "ARN"
         print(customer_id, api_key)
         
@@ -75,7 +75,7 @@ def send_invoice(invoices):
                 'billed_to': invoice['customer_name'],
                 'contact': contact,
                 'status': 'Failed',
-                'message': f"Your package{invoice['customer_name']} test {url}",
+                'message': f"Your package {invoice['customer_name']} test {url}",
                 'error': response_body['status']['description'],
                 'date': datetime.now()
             }
@@ -85,13 +85,6 @@ def send_invoice(invoices):
     # return Response({"message":"Message has been queued and will soon be delivered"},status=status.HTTP_200_OK)
 
 
-def runScheduler():
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(dummy, 'interval', seconds = 5)
-    # scheduler.start()
 
 
-
-def dummy():
-    print('dummy')
 
