@@ -53,10 +53,10 @@ def send_invoice(invoices):
         for contact_list in invoice['contact_persons_details']:
             if contact_list['mobile'] != '':
                 contact = contact_list['mobile']
-                invoice['contact'] = contact
                 break
 
 
+        invoice['contact'] = contact
         if response_body['status']['code'] == 290:
             message={
                 'reference_id': response_body['reference_id'],
