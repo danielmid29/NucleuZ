@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-3_pq=v03i968s9qc0=kdl^jo)$!kc4e8oy7%+zyv2yh)^&0vu&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['16.170.159.223']
+ALLOWED_HOSTS = ['16.170.159.223', '127.0.0.1']
 
 
 # Application definition
@@ -56,7 +56,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000','http://nucleuz.s3-website.ap-south-1.amazonaws.com/'
+    'http://localhost:3000','http://nucleuz.s3-website.ap-south-1.amazonaws.com'
 ]
 
 ROOT_URLCONF = 'NucleuZ.urls'

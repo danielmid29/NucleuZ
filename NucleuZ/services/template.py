@@ -60,7 +60,12 @@ def get_template_with_details(request :HttpRequest):
         feedback_dump = dumps(feedback, indent = 2)  
         feedback_json = json.loads(feedback_dump)
         print(feedback_json)
-        template_json.update({'feedback':feedback_json})
+
+        if not feedback_json:
+            template_json.update({'feedback':{}})
+        else:
+            template_json.update({'feedback':feedback_json})
+
 
     print(template_json)
 
