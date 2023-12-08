@@ -48,7 +48,7 @@ def get_template_with_details(request :HttpRequest):
     template_dump = dumps(template, indent = 2)  
     template_json = json.loads(template_dump)
 
-    if  len(id) != 0 :
+    if  len(id) != 0 and template_json :
         invoice = invoice_collection.find_one({"invoice_number": id, 'api': api})
     
         invoice_dump = dumps(invoice, indent = 2)  
