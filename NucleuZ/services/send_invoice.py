@@ -53,6 +53,7 @@ def send_invoice(invoices):
         for contact_list in invoice['contact_persons_details']:
             if contact_list['mobile'] != '':
                 contact = contact_list['mobile']
+                invoice['contact'] = contact
                 break
 
 
@@ -82,6 +83,7 @@ def send_invoice(invoices):
 
             message_collection.insert_one(message)
 
+        return invoices
     # return Response({"message":"Message has been queued and will soon be delivered"},status=status.HTTP_200_OK)
 
 

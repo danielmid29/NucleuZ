@@ -258,7 +258,7 @@ def check_new_invoice():
 
     for api_invoice in api_invoices:
         if api_invoice['invoice_number'] in invoice_ids:
-            print(True)
+            print('Already Exist')
         else:
             print(api_invoice['invoice_number'])
             invoice_api_data = get_invoice_data_api(api_invoice['invoice_number'], api_json, True)
@@ -266,8 +266,8 @@ def check_new_invoice():
             new_invoices.append(invoice_api_data['invoice'])
 
     if new_invoices:
-        invoice_collection.insert_many(new_invoices)
-        send_invoice(new_invoices)
+        sent_invoices = send_invoice(new_invoices)
+        invoice_collection.insert_many(sent_invoices)
 
     print(new_invoices)
     return JsonResponse({"error": 'str(e)'}, status=status.HTTP_204_NO_CONTENT, safe=False)
