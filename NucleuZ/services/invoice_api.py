@@ -274,6 +274,7 @@ def runScheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(check_new_invoice, 'interval', seconds = 60)
     scheduler.start()
+    return True
 
 @api_view(['POST'])
 def invoice_api(request: HttpRequest):

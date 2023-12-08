@@ -95,8 +95,8 @@ def get_messages(request :HttpRequest):
     search_value = request.GET['search_value']
 
 
-    find_json = {"$or" : [{'invoice_number': {"$regex" : search_value}}, {'status': {"$regex" : search_value}}, 
-                          {'message_template': {"$regex" : search_value}}] }
+    find_json = {"$or" : [{'invoice_id': {"$regex" : search_value}}, {'status': {"$regex" : search_value}}, 
+                          {'message': {"$regex" : search_value}}] }
 
     print(search_value)
     data = message_collection.find(find_json).sort('_id', -1).skip(limit * (int(page_number) - 1)).limit(limit)
