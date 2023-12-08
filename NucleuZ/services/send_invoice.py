@@ -27,13 +27,11 @@ def send_invoice(invoices):
     template_json = json.loads(template_dump)
 
 
+    print(len(invoices))
+
     for invoice in invoices:
         url = f"http://nucleuz.s3-website.ap-south-1.amazonaws.com/invoice?id={invoice['invoice_number']}&at={invoice['api']}"
         message = 'This is your message'
-
-
-    
-
         customer_id = os.getenv('CUSTOMER_ID', 'D8E4D314-14EF-436C-BBB5-C181CB4CF780')
         api_key = os.getenv('API_KEY', 'Ts/L7qVz8wSHerD5CZOO2segTYNsP6zMw/WzhdBxaAgGA0hu6dBphQ1UjOsVZlFL5dmLWR7ekMpR2alx44l8MA==')
         phone_number = os.getenv('PHONE_NUMBER', '918608003636')
@@ -53,10 +51,12 @@ def send_invoice(invoices):
         for contact_list in invoice['contact_persons_details']:
             if contact_list['mobile'] != '':
                 contact = contact_list['mobile']
-                break
 
 
-        invoice['contact'] = contact
+        invoice.update({'contact' : contact}) 
+
+        print(invoice['contact'])
+
         if response_body['status']['code'] == 290:
             message={
                 'reference_id': response_body['reference_id'],
@@ -83,7 +83,7 @@ def send_invoice(invoices):
 
             message_collection.insert_one(message)
 
-        return invoices
+    return invoices
     # return Response({"message":"Message has been queued and will soon be delivered"},status=status.HTTP_200_OK)
 
 

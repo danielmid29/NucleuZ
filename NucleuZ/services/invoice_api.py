@@ -85,7 +85,7 @@ def get_access_token(client_id, client_secret, code, nrt, cpt):
 
 
 
-def get_invoice_data_api(id, api_json, retry :bool):
+def get_invoice_data_api(id, api_json, retry :bool, invoice_id_sep):
 
     current_time = datetime.now()
     difference = current_time - time
@@ -107,33 +107,32 @@ def get_invoice_data_api(id, api_json, retry :bool):
     try:
         headers = {"Authorization": f"Zoho-oauthtoken {access_token}", "X-com-zoho-invoice-organizationid":api_json['organization_id']}
 
-
-        response = requests.get(f"https://www.zohoapis.in/invoice/v3/invoices/", headers=headers)
-        data = json.loads(response.text)
-        print(data)
-
-        if data['code'] != 0:
-            print('error')
-            raise Exception(data['message'])
-            print(data)
-            
-        invoices = data['invoices']
-
-        print(invoices)
-
         invoice_id : str = ''
+        print(invoice_id_sep)
+        if invoice_id_sep: 
+            invoice_id = invoice_id_sep
+        else:
+            response = requests.get(f"https://www.zohoapis.in/invoice/v3/invoices/", headers=headers)
+            data = json.loads(response.text)
+
+            if data['code'] != 0:
+                print('error')
+                raise Exception(data['message'])
+                print(data)
+                
+            invoices = data['invoices']
 
 
-        if id == '':
-            return data
-        
-        for invoice in invoices:
-            if invoice['invoice_number'] == id:
-                print(invoice['invoice_id'])
-                invoice_id = invoice['invoice_id']
-            else: 
-                print('Not found')    
 
+            if id == '':
+                return data
+            
+            for invoice in invoices:
+                if invoice['invoice_number'] == id:
+                    print(invoice['invoice_id'])
+                    invoice_id = invoice['invoice_id']
+                else: 
+                    print('Not found')    
 
         if invoice_id :
             response = requests.get(f"https://www.zohoapis.in/invoice/v3/invoices/{invoice_id}", headers=headers)
@@ -146,7 +145,7 @@ def get_invoice_data_api(id, api_json, retry :bool):
             except Exception as e:
                 print(e)
                 raise Exception(f"{e}")
-            get_invoice_data_api(id, False)
+            get_invoice_data_api(id, False,'')
         else:
             raise Exception(f"error while getting invoice details : {e}")
     except Exception as e:
@@ -174,7 +173,7 @@ def get_invoice_details(request):
     api_json = json.loads(dumps(api_data))
 
     try:
-        invoice_api_data = get_invoice_data_api(id, api_json, True)
+        invoice_api_data = get_invoice_data_api(id, api_json, True, '')
     except Exception as e:
         if 'not found' in str(e):
             return JsonResponse({"error": str(e)}, status=status.HTTP_404_NOT_FOUND, safe=False)
@@ -223,21 +222,19 @@ def get_invoice_details(request):
 
 
 
-def check_new_invoice():
+def check_new_invoice(request):
     api_data = api_collection.find_one({"api_name":'ZOHO'})
     api_json = json.loads(dumps(api_data))
 
 
     try:
-        invoice_api_data = get_invoice_data_api('', api_json, True)
+        invoice_api_data = get_invoice_data_api('', api_json, True,'')
     except Exception as e:
         if 'not found' in str(e):
             return JsonResponse({"error": str(e)}, status=status.HTTP_404_NOT_FOUND, safe=False)
         else:
             return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR, safe=False)
         
-    if invoice_api_data['code'] == 0:
-        print(len(invoice_api_data['invoices']))
 
     api_invoices = invoice_api_data['invoices']
     invoices = invoice_collection.find()
@@ -246,8 +243,6 @@ def check_new_invoice():
     invoices_dump = dumps(invoices_list, indent = 2)  
     invoices_json = json.loads(invoices_dump)
     
-
-    print(len(invoices_json))
 
     invoice_ids = []
 
@@ -261,7 +256,7 @@ def check_new_invoice():
             print('Already Exist')
         else:
             print(api_invoice['invoice_number'])
-            invoice_api_data = get_invoice_data_api(api_invoice['invoice_number'], api_json, True)
+            invoice_api_data = get_invoice_data_api(api_invoice['invoice_number'], api_json, True,api_invoice['invoice_id'])
             invoice_api_data['invoice'].update({'api':'ZOHO'})
             new_invoices.append(invoice_api_data['invoice'])
 
@@ -269,15 +264,14 @@ def check_new_invoice():
         sent_invoices = send_invoice(new_invoices)
         invoice_collection.insert_many(sent_invoices)
 
-    print(new_invoices)
     return JsonResponse({"error": 'str(e)'}, status=status.HTTP_204_NO_CONTENT, safe=False)
 
 
 
 def runScheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(check_new_invoice, 'interval', seconds = 30)
-    scheduler.start()
+    # scheduler.add_job(check_new_invoice, 'interval', seconds = 30)
+    # scheduler.start()
 
 @api_view(['POST'])
 def invoice_api(request: HttpRequest):
@@ -309,7 +303,7 @@ def test_api(request: HttpRequest):
     request_body['nrt'] = ''
     request_body['cpt'] = ''
     try:
-        get_invoice_data_api(request_body['invoice_number'], request_body, True)
+        get_invoice_data_api(request_body['invoice_number'], request_body, True,'')
     except Exception as e:
         if 'not found' in str(e):
             return Response({"message": "Api is working good"}, status=status.HTTP_200_OK)
