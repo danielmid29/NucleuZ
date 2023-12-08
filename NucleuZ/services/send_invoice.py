@@ -75,7 +75,7 @@ def send_invoice(invoices):
                 'invoice_id': invoice['invoice_number'],
                 'billed_to': invoice['customer_name'],
                 'contact': contact,
-                'status': 'Failed',
+                'status': 'FAILED',
                 'message': f"Your package {invoice['customer_name']} test {url}",
                 'error': response_body['status']['description'],
                 'date': datetime.now()

@@ -108,10 +108,12 @@ def get_invoice_data_api(id, api_json, retry :bool, invoice_id_sep):
         headers = {"Authorization": f"Zoho-oauthtoken {access_token}", "X-com-zoho-invoice-organizationid":api_json['organization_id']}
 
         invoice_id : str = ''
-        print(invoice_id_sep)
+        print('invoice_id_sep',invoice_id_sep)
         if invoice_id_sep: 
             invoice_id = invoice_id_sep
         else:
+            
+            print('invoice_id_sep inside',invoice_id_sep)
             response = requests.get(f"https://www.zohoapis.in/invoice/v3/invoices/", headers=headers)
             data = json.loads(response.text)
 
@@ -222,7 +224,7 @@ def get_invoice_details(request):
 
 
 
-def check_new_invoice(request):
+def check_new_invoice():
     api_data = api_collection.find_one({"api_name":'ZOHO'})
     api_json = json.loads(dumps(api_data))
 
@@ -270,8 +272,8 @@ def check_new_invoice(request):
 
 def runScheduler():
     scheduler = BackgroundScheduler()
-    # scheduler.add_job(check_new_invoice, 'interval', seconds = 30)
-    # scheduler.start()
+    scheduler.add_job(check_new_invoice, 'interval', seconds = 60)
+    scheduler.start()
 
 @api_view(['POST'])
 def invoice_api(request: HttpRequest):

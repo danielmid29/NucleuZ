@@ -22,7 +22,7 @@ def get_dashboard(request):
     invoice_count = invoice_collection.count_documents(filter={})
 
     message_success_count = message_collection.count_documents(filter={"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}]})
-    message_failed_count = message_collection.count_documents(filter={"$or":[{"status":"FAILED"}]})
+    message_failed_count = message_collection.count_documents(filter={"$or":[{"status":"FAILED"}, {"status":"Failed"}]})
     
     
 
@@ -33,7 +33,7 @@ def get_dashboard(request):
     past_7_date = datetime.now() - dt.timedelta(days=7)
     
     message_success_graph_data = message_collection.find({"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}], "date":{"$gte":past_7_date}})
-    message_failed_graph_data = message_collection.find({"$or":[{"status":"FAILED"}], "date":{"$gte":past_7_date}})
+    message_failed_graph_data = message_collection.find({"$or":[{"status":"FAILED"}, {"status":"Failed"}], "date":{"$gte":past_7_date}})
 
     response = {
         "invoice": invoice_count,
