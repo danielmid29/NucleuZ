@@ -43,4 +43,3 @@ urlpatterns = [
 ]
 
 invoice_api.runScheduler()
-print('inside')
