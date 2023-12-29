@@ -13,6 +13,7 @@ class Invoice(models.Model):
 invoice_collection = db['invoices']
 survey_and_marketing_collection = db['survey_and_marketing']
 company_info_collection = db['company_info']
+customers_collection = db['customers']
 message_collection = db['message']
 feedback_collection = db['feedback']
 api_collection = db['invoice_api']

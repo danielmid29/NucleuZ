@@ -56,15 +56,19 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000','http://nucleuz.s3-website.ap-south-1.amazonaws.com/'
+    'http://localhost:3000','http://nucleuz.s3-website.ap-south-1.amazonaws.com'
 ]
 
 ROOT_URLCONF = 'NucleuZ.urls'
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+print(BASE_DIR)
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

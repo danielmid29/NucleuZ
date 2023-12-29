@@ -3,6 +3,7 @@ from django.http import HttpRequest
 from ..models import invoice_collection
 from ..models import survey_and_marketing_collection
 from ..models import company_info_collection
+from ..models import customers_collection
 from ..models import message_collection
 from ..models import feedback_collection
 from rest_framework.decorators import api_view
@@ -11,6 +12,7 @@ from rest_framework import status
 import json
 from bson.json_util import dumps
 import math
+from datetime import datetime
 
 @api_view(['GET'])
 def get_invoices(request :HttpRequest):
@@ -118,7 +120,7 @@ def get_messages(request :HttpRequest):
 
 
 @api_view(['GET', 'POST'])
-def get_feedbacks(request :HttpRequest):
+def get_customers(request :HttpRequest):
 
     if request.method == 'GET':
         page_number = request.GET['page_number']
@@ -126,25 +128,100 @@ def get_feedbacks(request :HttpRequest):
         search_value = request.GET['search_value']
 
 
-        find_json = {"$or" : [{'invoice_fk': {"$regex" : search_value}}] }
+        find_json = {"$or" : [{'customer_id': {"$regex" : search_value}}, {'customer_name': {"$regex" : search_value}}, 
+                            {'contact': {"$regex" : search_value}}, 
+                            {'email': {"$regex" : search_value}}] }
 
         print(search_value)
-        data = feedback_collection.find(find_json).sort('_id', -1).skip(limit * (int(page_number) - 1)).limit(limit)
+        data = customers_collection.find(find_json).sort('_id', -1).skip(limit * (int(page_number) - 1)).limit(limit)
 
-        total = feedback_collection.count_documents(find_json)
+        total = customers_collection.count_documents(find_json)
 
         data_list =  list(data)
         json_data = dumps(data_list, indent = 2)  
-        print(json_data)
         if not data_list:
             return Response({"error":"no records found"}, status= status.HTTP_404_NOT_FOUND)
         else: 
             response = {
                 "count" :total,
                 "total_pages": math.ceil(total/limit),
-                "feedback": json.loads(json_data)
+                "customers": json.loads(json_data)
             }
             return JsonResponse(response, status=status.HTTP_200_OK, safe=False)
+    
+    if request.method == 'POST':
+        try:
+            request_body :dict = json.loads(request.body)
+
+            existing = customers_collection.find({'customer_id': request_body['customer_id']})
+
+            if not list(existing):
+                customers_collection.insert_one(request_body)
+            else:
+                request_body.pop('_id')
+                customers_collection.replace_one(filter={'customer_id': request_body['customer_id']}, replacement=request_body)
+        
+
+
+            return Response({"message": "Customer deatails updated"}, status=status.HTTP_200_OK)
+        except Exception as e :
+            print(e)
+
+@api_view(['GET', 'POST'])
+def get_feedbacks(request :HttpRequest):
+
+    if request.method == 'GET':
+        page_number = request.GET['page_number']
+        limit = int(request.GET['limit'])
+        search_value = request.GET['search_value']
+        store_id = request.GET['store_id']
+        rating_from = request.GET['rating_from']
+        rating_to = request.GET['rating_to']
+        date_from = request.GET['date_from']
+        date_to = request.GET['date_to']
+        
+        try:
+
+
+            find_json = {"rating": {"$gte": int(rating_from), "$lte": int(rating_to)}}
+
+            if search_value != "":
+                find_json["invoice_fk"] = {"$regex" : search_value}
+
+            if store_id != "":
+                find_json["store_id"] = store_id
+
+            if date_from != "":
+                
+                date_from = datetime.strptime(date_from, '%Y-%m-%d %H:%M:%S')
+                date_to = datetime.strptime(date_to, '%Y-%m-%d %H:%M:%S')
+                find_json["date"] = {"$gte": date_from, "$lte": date_to}
+
+            print(find_json)
+            if limit == 0:
+                data = feedback_collection.find(find_json).sort('date', -1)
+            else :
+                data = feedback_collection.find(find_json).sort('date', -1).skip(limit * (int(page_number) - 1)).limit(limit)
+
+
+
+            total = feedback_collection.count_documents(find_json)
+
+            data_list =  list(data)
+            json_data = dumps(data_list, indent = 2)  
+            if not data_list:
+                return Response({"error":"no records found"}, status= status.HTTP_404_NOT_FOUND)
+            else: 
+                limit = 1 if limit ==0 else  limit
+                response = {
+                    "count" :total,
+                    "total_pages": math.ceil(total/limit ),
+                    "feedback": json.loads(json_data)
+                }
+                return JsonResponse(response, status=status.HTTP_200_OK, safe=False)
+        
+        except Exception as e:
+            print(e)
     else:
         request_body = json.loads(request.body)
 
@@ -156,4 +233,4 @@ def get_feedbacks(request :HttpRequest):
             feedback_collection.replace_one(filter={'invoice_fk': request_body['invoice_fk']}, replacement=request_body)
 
 
-    return Response({"message": "Feedback added to the invoice"}, status=status.HTTP_200_OK)
+        return Response({"message": "Feedback added to the invoice"}, status=status.HTTP_200_OK)

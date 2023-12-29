@@ -34,18 +34,65 @@ def get_dashboard(request):
     
     message_success_graph_data = message_collection.find({"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}], "date":{"$gte":past_7_date}})
     message_failed_graph_data = message_collection.find({"$or":[{"status":"FAILED"}, {"status":"Failed"}], "date":{"$gte":past_7_date}})
+    invoice_graph_data = feedback_collection.find({}).sort('rating', 1)
+    data_list =  list(invoice_graph_data)
+    json_data = dumps(data_list, indent = 2) 
 
+    invoice_graph_data = invoice_collection.find({}).sort('date', 1)
+    invoice_data_list =  list(invoice_graph_data)
+    invoice_json_data = dumps(invoice_data_list, indent = 2) 
     response = {
         "invoice": invoice_count,
         "message_success":message_success_count,
         "message_failed":message_failed_count,
         "enabled_api": enabled_api,
         "feedbacks":feedbacks,
-        "message_success_graph": get_graph_data(message_success_graph_data),
         "message_failed_graph":get_graph_data(message_failed_graph_data),
+        "message_success_graph": get_graph_data(message_success_graph_data),
+        "rating_graph":get_rating_graph_data(json.loads(json_data)),
+        "invoice_graph":get_invoice_graph_data(json.loads(invoice_json_data)),
     }
     return Response(response, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def get_rating(request):
+    
+    store_id = request.GET['store_id']
+    rating_from = request.GET['rating_from']
+    rating_to = request.GET['rating_to']
+    date_from = request.GET['date_from']
+    date_to = request.GET['date_to']
+        
+    try:
+
+
+        find_json = {"rating": {"$gte": int(rating_from), "$lte": int(rating_to)}}
+
+
+        if store_id != "":
+            find_json["store_id"] = store_id
+
+        if date_from != "":
+                
+            date_from = datetime.strptime(date_from, '%Y-%m-%d %H:%M:%S')
+            date_to = datetime.strptime(date_to, '%Y-%m-%d %H:%M:%S')
+            find_json["date"] = {"$gte": date_from, "$lte": date_to}
+
+        print(find_json)
+        
+        data = feedback_collection.find(find_json).sort('date', 1)
+
+
+        data_list =  list(data)
+        json_data = dumps(data_list, indent = 2)  
+    except Exception as e:
+        print(e)
+        
+    if not data_list:
+        return Response({"error":"no records found"}, status= status.HTTP_404_NOT_FOUND)
+    else: 
+        response = {"rating":get_rating_graph_data(json.loads(json_data))}
+        return JsonResponse(response, status=status.HTTP_200_OK, safe=False)
 
 def get_graph_data(data):
     message_success_graph :dict = {}
@@ -79,3 +126,69 @@ def get_graph_data(data):
         })
     
     return message_success_graph_list
+
+def get_invoice_graph_data(data):
+    invoice_graph :dict = {}
+    balance = 0 
+    comp_date = ""
+    for invoice in list(data):
+        date = invoice['date']
+        date_str = str(date)
+        
+
+        if len(comp_date) ==0:
+            comp_date = date_str
+
+        if comp_date == date_str:
+            invoice_graph[date_str] = balance+int(invoice['total'])
+            balance = balance+int(invoice['total'])
+        else:
+            balance = 0
+            comp_date = date_str
+            invoice_graph[date_str] = balance+int(invoice['total'])
+            balance = balance+int(invoice['total'])
+
+
+    invoice_list = []
+    keys= invoice_graph.keys()
+
+    for key in keys:
+        invoice_list.append({
+            "date": key,
+            "balance": invoice_graph[key]
+        })
+    
+    return invoice_list
+
+def get_rating_graph_data(data):
+    rating_graph :dict = {}
+    try:
+        count = 0 
+        comp_rate = ""
+        for rating in list(data):
+            rating_str = str(rating['rating'])
+            print(comp_rate)
+            if len(comp_rate) ==0:
+                comp_rate = rating_str
+
+            if comp_rate == rating_str:
+                rating_graph[rating_str] = count+1
+                count = count+1
+            else:
+                count = 0
+                comp_rate = rating_str
+                rating_graph[rating_str] = count+1
+                count = count+1
+        
+
+        rating_list = []
+        keys= rating_graph.keys()
+    except Exception as e :
+        print(e)
+    for key in keys:
+        rating_list.append({
+            "rating": key,
+            "count": rating_graph[key]
+        })
+    
+    return rating_list

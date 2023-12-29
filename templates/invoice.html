@@ -1,0 +1,266 @@
+<html>
+  <head>
+    <title>{% if pdf_title %}{{ pdf_title }}{% else %}PDF{% endif %}</title>
+    <style type="text/css">
+            @page { size: A4 }
+
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+            body{
+                font-family: 'Poppins', sans-serif;
+                color: #6a7181;
+            }
+            .template-pdf {
+                background-color: white;
+            }
+
+            .top-info {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .info-l {
+                width: 50%;
+            }
+
+            .info-logo {
+                object-fit: contain;
+                height: 80px;
+                width: 40%;
+            }
+
+            .company-info-pdf {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                font-size: 35px;
+                font-weight: 9sta00;
+                letter-spacing: 1.5px;
+                text-align: center;
+            }
+
+            .row-2 {
+                padding: 15px 0;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .r2-l,
+            .r2-r {
+                width: 50%;
+                padding-left: 10px;
+            }
+
+            .r2-ldiv {
+                display: flex;
+                font-size: 13px;
+                font-weight: 400;
+                padding-bottom: 10px;
+            }
+
+            .r2-lh {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 800;
+                width: 30%;
+            }
+
+            .order {
+                width: 100%;
+                text-align: center;
+                font-size: 15px;
+                font-weight: 600;
+                letter-spacing: 1.5px;
+            }
+
+            .table-pdf {
+                font-size: 13px;
+                border: 1px solid #6a7181;
+                margin-top: 10px;
+            }
+
+            .order-sum-head {
+                display: flex;
+                font-weight: 600;
+                border-bottom: 1px solid #6a7181;
+                padding: 10px 0;
+            }
+
+            th {
+                font-weight: 500;
+            }
+
+            .order-sum-data {
+                display: flex;
+                padding: 11px 0;
+            }
+
+            .table-down {
+                font-size: 13px;
+                display: flex;
+                padding: 10px 0;
+            }
+
+            .tdh {
+                width: 72.5%;
+                padding-left: 5px;
+            }
+
+            .tdd {
+                display: flex;
+            }
+
+            .td {
+                border: 1px solid #6a7181;
+                border-top: 0;
+            }
+
+
+            .termsnc {
+                padding-top: 5px;
+                font-size:13px;
+            }
+
+            .tntitle {
+                font-size: 17px;
+                font-weight: 600;
+                letter-spacing: 1px;
+            }
+
+            .note-pdf {
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: .5px;
+                text-align: center;
+            }
+        </style>
+  </head>
+  <body>
+    <div
+      class="template-pdf">
+      <div>
+        <div class="top-info">
+          <div class="info-l">
+            <div class="company-info-pdf">
+              <img
+                src='data:image;base64, {{company_info.companyLogo}}'
+                alt={{company_info.companyLogoName}}
+                class="info-logo" />
+              <div>{{company_info.companyName}}</div>
+            </div>
+          </div>
+        </div>
+        <table class="row-2">
+          |<tr>
+            <td><div class="r2-ldiv">
+                <b class="r2-lh">Branch</b> : Pondicherry
+              </div>
+            </td>
+            <td>
+              <div class="r2-ldiv">
+                <div class="r2-lh">Invoice Date</div>
+                <div class="r2-ld">: {{invoice.date}}</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+        <table>
+          <div class="r2-l">
+            <div class="r2-ldiv">
+              <div class="r2-lh">Branch</div>
+              <div class="r2-ld">: Pondicherry</div>
+            </div>
+
+            <div class="r2-ldiv">
+              <div class="r2-lh">Branch Id</div>
+              <div class="r2-ld">: 155a1685asdf</div>
+            </div>
+
+            <div class="r2-ldiv">
+              <div class="r2-lh">Branch Head</div>
+              <div class="r2-ld">: Benedict</div>
+            </div>
+          </div>
+          <div class="r2-r">
+            <div class="r2-ldiv">
+              <div class="r2-lh">Invoice Date</div>
+              <div class="r2-ld">: {{invoice.date}}</div>
+            </div>
+            <div class="r2-ldiv">
+              <div class="r2-lh">Invoice Number</div>
+              <div class="r2-ld">: {{invoice.invoice_number}}</div>
+            </div>
+            <div class="r2-ldiv">
+              <div class="r2-lh">Billed To</div>
+              <div class="r2-ld">: {{invoice.customer_name}}</div>
+            </div>
+
+            <div class="r2-ldiv">
+              <div class="r2-lh">Customer Id</div>
+              <div class="r2-ld">: {{invoice.customer_id}}</div>
+            </div>
+          </div>
+        </table>
+
+        <div class="order">Order Summary</div>
+        <div class="table-pdf">
+          <div class="order-sum-head">
+            <div width="10%" textAlign="center">S. No.</div>
+            <div width="30%">Description</div>
+            <div width="20%">Price</div>
+            <div
+              width="10%" textAlign="center" marginRight="60px">
+              Quantity
+            </div>
+            <div width="20%">Item Total</div>
+          </div>
+          {% for product in invoice.line_items %}
+          <div padding="5px 0">
+
+            <div class="order-sum-data" key={index}>
+              <div
+                width="10%"
+                textAlign="center">
+              </div>
+              <div width="30%">{{product.description}}</div>
+              <div width="20%">{{product.rate}}</div>
+              <div
+                width="10%"
+                textAlign="center"
+                marginRight="60px">
+                {{product.quantity}}
+              </div>
+              <div width="20%">{{product.item_total}}</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <div class="td">
+          <div class="table-down">
+            <div class="tdh">Sub Total</div>
+            <div class="tdd">{{invoice.sub_total}}</div>
+          </div>
+          <div class="table-down">
+            <div class="tdh">Discount ({{invoice.discount}})</div>
+            <div class="tdd">{{invoice.discount_amount}}</div>
+          </div>
+          <div class="table-down">
+            <div class="tdh">Total ({{invoice.currency_code}})</div>
+            <div class="tdd">
+              {{invoice.total}}
+              <div class="font">{{invoice.currency_symbol}}</div>
+            </div>
+          </div>
+        </div>
+        <div class="termsnc">
+          <div class="tntitle"> Terms & Conditions</div>
+          <div
+            class='tnc-pdf'></div>
+        </div>
+        <div class="note-pdf">
+          This is a system generated invoice, signature not needed
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

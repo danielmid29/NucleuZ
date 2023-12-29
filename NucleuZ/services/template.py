@@ -16,10 +16,11 @@ from bson.json_util import dumps
 from cryptography.fernet import Fernet
 from datetime import datetime
 import datetime as dt
+from ..renderer import render_to_pdf
 
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def save_template(request :HttpRequest):
     
     request_body = json.loads(request.body)
@@ -67,6 +68,39 @@ def get_template_with_details(request :HttpRequest):
             template_json.update({'feedback':feedback_json})
 
 
-    print(template_json)
 
     return JsonResponse(template_json, status=status.HTTP_200_OK, safe=False)
+
+@api_view(['POST'])
+def pdf_view(request :HttpRequest):
+    
+    id = request.GET['id']
+    api = request.GET['api']
+    
+
+    template = template_collection.find_one({'template_id': 1})
+    
+    template_dump = dumps(template, indent = 2)  
+    template_json = json.loads(template_dump)
+
+    if  len(id) != 0 and template_json :
+        invoice = invoice_collection.find_one({"invoice_number": id, 'api': api})
+    
+        invoice_dump = dumps(invoice, indent = 2)  
+        invoice_json = json.loads(invoice_dump)
+
+        template_json.update({'invoice':invoice_json})
+        
+        feedback = feedback_collection.find_one({"invoice_fk":id})
+        feedback_dump = dumps(feedback, indent = 2)  
+        feedback_json = json.loads(feedback_dump)
+        print(feedback_json)
+
+        if not feedback_json:
+            template_json.update({'feedback':{}})
+        else:
+            template_json.update({'feedback':feedback_json})
+
+
+
+    return render_to_pdf('invoice.html', template_json)
