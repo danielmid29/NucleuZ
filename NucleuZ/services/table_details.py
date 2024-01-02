@@ -225,8 +225,8 @@ def get_feedbacks(request :HttpRequest):
         limit = int(request.GET['limit'])
         search_value = request.GET['search_value']
         store_id = request.GET['store_name']
-        rating_from = request.GET['rating_from']
-        rating_to = request.GET['rating_to']
+        rating_from :str = request.GET['rating_from'].replace('+', " ")
+        rating_to = request.GET['rating_to'].replace('+', " ")
         date_from = request.GET['date_from']
         date_to = request.GET['date_to']
         
