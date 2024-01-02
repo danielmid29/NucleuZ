@@ -6,6 +6,7 @@ from ..models import company_info_collection
 from ..models import customers_collection
 from ..models import message_collection
 from ..models import feedback_collection
+from ..models import stores_collection
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -163,9 +164,58 @@ def get_customers(request :HttpRequest):
         
 
 
-            return Response({"message": "Customer deatails updated"}, status=status.HTTP_200_OK)
+            return Response({"message": "Customer details updated"}, status=status.HTTP_200_OK)
         except Exception as e :
             print(e)
+
+@api_view(['GET', 'POST'])
+def get_stores(request :HttpRequest):
+
+    if request.method == 'GET':
+        page_number = request.GET['page_number']
+        limit = int(request.GET['limit'])
+        search_value = request.GET['search_value']
+
+
+        find_json = {"$or" : [{'store_id': {"$regex" : search_value}}, {'store_name': {"$regex" : search_value}}, 
+                            {'manager_contact': {"$regex" : search_value}}, 
+                            {'manager_email': {"$regex" : search_value}}] }
+
+        print(search_value)
+        data = stores_collection.find(find_json).sort('_id', -1).skip(limit * (int(page_number) - 1)).limit(limit)
+
+        total = stores_collection.count_documents(find_json)
+
+        data_list =  list(data)
+        json_data = dumps(data_list, indent = 2)  
+        if not data_list:
+            return Response({"error":"no records found"}, status= status.HTTP_404_NOT_FOUND)
+        else: 
+            response = {
+                "count" :total,
+                "total_pages": math.ceil(total/limit),
+                "customers": json.loads(json_data)
+            }
+            return JsonResponse(response, status=status.HTTP_200_OK, safe=False)
+    
+    if request.method == 'POST':
+        try:
+            request_body :dict = json.loads(request.body)
+
+            existing = stores_collection.find({'store_name': request_body['store_name']})
+
+            if not list(existing):
+                stores_collection.insert_one(request_body)
+            else:
+                request_body.pop('_id')
+                stores_collection.replace_one(filter={'store_name': request_body['store_name']}, replacement=request_body)
+        
+
+
+            return Response({"message": "Store details updated"}, status=status.HTTP_200_OK)
+        except Exception as e :
+            print(e)
+
 
 @api_view(['GET', 'POST'])
 def get_feedbacks(request :HttpRequest):
@@ -174,7 +224,7 @@ def get_feedbacks(request :HttpRequest):
         page_number = request.GET['page_number']
         limit = int(request.GET['limit'])
         search_value = request.GET['search_value']
-        store_id = request.GET['store_id']
+        store_id = request.GET['store_name']
         rating_from = request.GET['rating_from']
         rating_to = request.GET['rating_to']
         date_from = request.GET['date_from']
@@ -189,7 +239,7 @@ def get_feedbacks(request :HttpRequest):
                 find_json["invoice_fk"] = {"$regex" : search_value}
 
             if store_id != "":
-                find_json["store_id"] = store_id
+                find_json["store_name"] = store_id
 
             if date_from != "":
                 

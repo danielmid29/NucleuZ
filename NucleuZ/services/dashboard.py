@@ -3,6 +3,8 @@ from django.http import HttpRequest
 from ..models import invoice_collection
 from ..models import survey_and_marketing_collection
 from ..models import company_info_collection
+from ..models import customers_collection
+from ..models import stores_collection
 from ..models import message_collection
 from ..models import feedback_collection
 from ..models import api_collection
@@ -24,40 +26,64 @@ def get_dashboard(request):
     message_success_count = message_collection.count_documents(filter={"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}]})
     message_failed_count = message_collection.count_documents(filter={"$or":[{"status":"FAILED"}, {"status":"Failed"}]})
     
-    
-
     enabled_api = api_collection.count_documents(filter={"status": "enabled"})
 
     feedbacks = feedback_collection.count_documents(filter={})
+    customers_count = customers_collection.count_documents(filter={})
 
     past_7_date = datetime.now() - dt.timedelta(days=7)
     
     message_success_graph_data = message_collection.find({"$or":[{"status":"SUCCESS"}, {"status":"DELIVERED"}, {"status":"QUEUED"}], "date":{"$gte":past_7_date}})
     message_failed_graph_data = message_collection.find({"$or":[{"status":"FAILED"}, {"status":"Failed"}], "date":{"$gte":past_7_date}})
-    invoice_graph_data = feedback_collection.find({}).sort('rating', 1)
-    data_list =  list(invoice_graph_data)
+    
+    feedback_graph_data = feedback_collection.find({}).sort('rating', 1)
+    data_list =  list(feedback_graph_data)
     json_data = dumps(data_list, indent = 2) 
 
     invoice_graph_data = invoice_collection.find({}).sort('date', 1)
     invoice_data_list =  list(invoice_graph_data)
     invoice_json_data = dumps(invoice_data_list, indent = 2) 
+
+    total_income = 0
+
+    for invoice in json.loads(invoice_json_data):
+        total_income = total_income + invoice['total']
+
+    print(total_income)
+
+    store_graph_data = stores_collection.find({})
+    store_data_list =  list(store_graph_data)
+    store_json_data = dumps(store_data_list, indent = 2) 
+
+    store_name_list = []
+
+    for store in json.loads(store_json_data):
+        store_name_list.append(store['store_name'])
+
+
+    print(store_name_list)
+    
     response = {
+        "total_income":total_income,
+        "customers":customers_count,
         "invoice": invoice_count,
         "message_success":message_success_count,
         "message_failed":message_failed_count,
         "enabled_api": enabled_api,
         "feedbacks":feedbacks,
+        "store_names":store_name_list,
         "message_failed_graph":get_graph_data(message_failed_graph_data),
         "message_success_graph": get_graph_data(message_success_graph_data),
         "rating_graph":get_rating_graph_data(json.loads(json_data)),
         "invoice_graph":get_invoice_graph_data(json.loads(invoice_json_data)),
     }
+    print(response)
     return Response(response, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def get_rating(request):
     
-    store_id = request.GET['store_id']
+    store_id = request.GET['store_name']
     rating_from = request.GET['rating_from']
     rating_to = request.GET['rating_to']
     date_from = request.GET['date_from']
@@ -70,7 +96,7 @@ def get_rating(request):
 
 
         if store_id != "":
-            find_json["store_id"] = store_id
+            find_json["store_name"] = store_id
 
         if date_from != "":
                 
@@ -131,23 +157,27 @@ def get_invoice_graph_data(data):
     invoice_graph :dict = {}
     balance = 0 
     comp_date = ""
-    for invoice in list(data):
-        date = invoice['date']
-        date_str = str(date)
-        
+    try:
+        for invoice in list(data):
+            date = invoice['date']
+            date_str = str(date)
+            
 
-        if len(comp_date) ==0:
-            comp_date = date_str
+            if len(comp_date) ==0:
+                comp_date = date_str
 
-        if comp_date == date_str:
-            invoice_graph[date_str] = balance+int(invoice['total'])
-            balance = balance+int(invoice['total'])
-        else:
-            balance = 0
-            comp_date = date_str
-            invoice_graph[date_str] = balance+int(invoice['total'])
-            balance = balance+int(invoice['total'])
+            if comp_date == date_str:
+                invoice_graph[date_str] = balance+int(invoice['total'])
+                balance = balance+int(invoice['total'])
+            else:
+                balance = 0
+                comp_date = date_str
+                invoice_graph[date_str] = balance+int(invoice['total'])
+                balance = balance+int(invoice['total'])
 
+
+    except Exception as e:
+        print(e)
 
     invoice_list = []
     keys= invoice_graph.keys()
@@ -157,7 +187,6 @@ def get_invoice_graph_data(data):
             "date": key,
             "balance": invoice_graph[key]
         })
-    
     return invoice_list
 
 def get_rating_graph_data(data):

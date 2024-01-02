@@ -35,6 +35,7 @@ urlpatterns = [
     re_path('invoices', table_details.get_invoices),
     path('invoice', template.get_template_with_details),
     path('message', table_details.get_messages),
+    path('stores', table_details.get_stores),
     path('customers', table_details.get_customers),
     path('feedback', table_details.get_feedbacks),
     path('rating', dashboard.get_rating),
