@@ -243,8 +243,8 @@ def get_feedbacks(request :HttpRequest):
 
             if date_from != "":
                 
-                date_from = datetime.strptime(date_from, '%Y-%m-%d %H:%M:%S')
-                date_to = datetime.strptime(date_to, '%Y-%m-%d %H:%M:%S')
+                date_from = datetime.strptime(date_from, '%m-%d-%Y %H:%M:%S')
+                date_to = datetime.strptime(date_to, '%m-%d-%Y %H:%M:%S')
                 find_json["date"] = {"$gte": date_from, "$lte": date_to}
 
             print(find_json)
