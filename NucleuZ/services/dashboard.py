@@ -106,11 +106,12 @@ def get_rating(request):
 
         print(find_json)
         
-        data = feedback_collection.find(find_json).sort('date', 1)
+        data = feedback_collection.find(find_json).sort('rating', 1)
 
 
         data_list =  list(data)
         json_data = dumps(data_list, indent = 2)  
+        print(json_data)
     except Exception as e:
         print(e)
         
