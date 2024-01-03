@@ -3,6 +3,7 @@ from ..models import invoice_collection
 from ..models import invoice_collection
 from ..models import survey_and_marketing_collection
 from ..models import company_info_collection
+from ..models import customers_collection
 from ..models import message_collection
 from ..models import feedback_collection
 from ..models import template_collection
@@ -42,7 +43,6 @@ def get_template_with_details(request :HttpRequest):
     id = request.GET['id']
     api = request.GET['api']
     
-
     template = template_collection.find_one({'template_id': 1})
     
     template_dump = dumps(template, indent = 2)  
@@ -55,7 +55,12 @@ def get_template_with_details(request :HttpRequest):
         invoice_json = json.loads(invoice_dump)
 
         template_json.update({'invoice':invoice_json})
-        
+
+        customer = customers_collection.find_one({'customer_id':invoice_json['customer_id']})
+        customer_dump = dumps(customer, indent = 2)  
+        customer_json = json.loads(customer_dump)
+        template_json.update({'customer':customer_json})
+
         feedback = feedback_collection.find_one({"invoice_fk":id})
         feedback_dump = dumps(feedback, indent = 2)  
         feedback_json = json.loads(feedback_dump)
