@@ -19,7 +19,7 @@ import datetime as dt
 
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def save_template(request :HttpRequest):
     
     request_body = json.loads(request.body)
