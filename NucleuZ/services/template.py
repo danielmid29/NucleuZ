@@ -42,8 +42,9 @@ def get_template_with_details(request :HttpRequest):
     try: 
         id = request.GET['id']
         api = request.GET['api']
+        print(api)
         print(type(api))
-        if not api: 
+        if api=='null' or   not api : 
             api = 'ZOHO' 
         template = template_collection.find_one({'template_id': 1})
         
