@@ -13,6 +13,7 @@ from datetime import datetime
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from bson.json_util import dumps
+import requests
 
 import os
 
@@ -36,13 +37,13 @@ def send_invoice(invoices):
         api_key = os.getenv('API_KEY', 'Ts/L7qVz8wSHerD5CZOO2segTYNsP6zMw/WzhdBxaAgGA0hu6dBphQ1UjOsVZlFL5dmLWR7ekMpR2alx44l8MA==')
         phone_number = os.getenv('PHONE_NUMBER', '918608003636')
 
-        message = f"Your package {invoice['customer_name']} test {url}"
+        message_que = f"Hello {invoice['customer_name']}, Your invoice has been generated {url}"
         message_type = "ARN"
         print(customer_id, api_key)
         
         messaging = MessagingClient(customer_id, api_key)
 
-        response = messaging.message(phone_number, message, message_type)
+        response = messaging.message(phone_number, message_que, message_type)
 
 
         response_body = json.loads(response.body)
@@ -82,6 +83,17 @@ def send_invoice(invoices):
             }
 
             message_collection.insert_one(message)
+
+        url = "https://api.ultramsg.com/instance76526/messages/chat"
+
+        payload = f"token=06k9gq5wbaurogm7&to=+918608003636&body={message_que}" 
+
+        payload = payload.encode('utf8').decode('iso-8859-1')
+        headers = {'content-type': 'application/x-www-form-urlencoded'}
+
+        response = requests.request("POST", url, data=payload, headers=headers)
+
+        print(response.text)
 
     return invoices
     # return Response({"message":"Message has been queued and will soon be delivered"},status=status.HTTP_200_OK)

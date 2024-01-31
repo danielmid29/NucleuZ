@@ -255,6 +255,7 @@ def check_new_invoice():
         invoice_ids.append(invoice['invoice_number'])
 
     for api_invoice in api_invoices:
+        print(api_invoice['invoice_number'])
         if api_invoice['invoice_number'] in invoice_ids:
             print('Already Exist')
         else:
