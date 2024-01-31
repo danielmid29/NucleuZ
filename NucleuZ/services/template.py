@@ -39,38 +39,42 @@ def save_template(request :HttpRequest):
 
 @api_view(['GET'])
 def get_template_with_details(request :HttpRequest):
+    try: 
+        id = request.GET['id']
+        api = request.GET['api']
+        print(type(api))
+        if not api: 
+            api = 'ZOHO' 
+        template = template_collection.find_one({'template_id': 1})
+        
+        template_dump = dumps(template, indent = 2)  
+        template_json = json.loads(template_dump)
 
-    id = request.GET['id']
-    api = request.GET['api']
-    
-    template = template_collection.find_one({'template_id': 1})
-    
-    template_dump = dumps(template, indent = 2)  
-    template_json = json.loads(template_dump)
+        if  len(id) != 0 and template_json :
+            invoice = invoice_collection.find_one({"invoice_number": id, 'api': api})
+        
+            invoice_dump = dumps(invoice, indent = 2)  
+            invoice_json = json.loads(invoice_dump)
 
-    if  len(id) != 0 and template_json :
-        invoice = invoice_collection.find_one({"invoice_number": id, 'api': api})
-    
-        invoice_dump = dumps(invoice, indent = 2)  
-        invoice_json = json.loads(invoice_dump)
+            template_json.update({'invoice':invoice_json})
 
-        template_json.update({'invoice':invoice_json})
+            customer = customers_collection.find_one({'customer_id':invoice_json['customer_id']})
+            customer_dump = dumps(customer, indent = 2)  
+            customer_json = json.loads(customer_dump)
+            template_json.update({'customer':customer_json})
 
-        customer = customers_collection.find_one({'customer_id':invoice_json['customer_id']})
-        customer_dump = dumps(customer, indent = 2)  
-        customer_json = json.loads(customer_dump)
-        template_json.update({'customer':customer_json})
+            feedback = feedback_collection.find_one({"invoice_fk":id})
+            feedback_dump = dumps(feedback, indent = 2)  
+            feedback_json = json.loads(feedback_dump)
+            print(feedback_json)
 
-        feedback = feedback_collection.find_one({"invoice_fk":id})
-        feedback_dump = dumps(feedback, indent = 2)  
-        feedback_json = json.loads(feedback_dump)
-        print(feedback_json)
-
-        if not feedback_json:
-            template_json.update({'feedback':{}})
-        else:
-            template_json.update({'feedback':feedback_json})
+            if not feedback_json:
+                template_json.update({'feedback':{}})
+            else:
+                template_json.update({'feedback':feedback_json})
 
 
 
-    return JsonResponse(template_json, status=status.HTTP_200_OK, safe=False)
+        return JsonResponse(template_json, status=status.HTTP_200_OK, safe=False)
+    except Exception as e:
+        print(e)
