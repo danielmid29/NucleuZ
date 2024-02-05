@@ -41,6 +41,7 @@ urlpatterns = [
     path('rating', dashboard.get_rating),
     path('dashboard', dashboard.get_dashboard),
     path('template', template.save_template),
+    path('send_email', table_details.send_mail),
 ]
 
 invoice_api.runScheduler()
