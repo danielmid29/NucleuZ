@@ -14,6 +14,8 @@ import json
 from bson.json_util import dumps
 import math
 from datetime import datetime
+from django.core.mail import EmailMessage, get_connection, send_mail
+from django.conf import settings
 
 @api_view(['GET'])
 def get_invoices(request :HttpRequest):
@@ -281,6 +283,27 @@ def get_feedbacks(request :HttpRequest):
             feedback_collection.insert_one(request_body)
         else:
             feedback_collection.replace_one(filter={'invoice_fk': request_body['invoice_fk']}, replacement=request_body)
-
-
+        
         return Response({"message": "Feedback added to the invoice"}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def send_mail(request :HttpRequest):
+    try:
+            with get_connection(  
+            host=settings.EMAIL_HOST, 
+        port=settings.EMAIL_PORT,  
+        username=settings.EMAIL_HOST_USER, 
+        password=settings.EMAIL_HOST_PASSWORD, 
+        use_tls=settings.EMAIL_USE_TLS  
+        ) as connection:  
+                subject = 'Test Mail'
+                email_from = settings.EMAIL_HOST_USER  
+                recipient_list = ['pramodhdaniel5@gmail.com' ]  
+                message = 'Test Mail'
+                email = EmailMessage(subject, message, email_from, recipient_list, connection=connection)
+                email.attach('invoice.pdf',request.data['pdf'].read(), 'application/pdf')
+                email.send()
+    except Exception as e:
+        print(e)
+
+    return Response({"message": "Mail Sent"}, status=status.HTTP_200_OK)

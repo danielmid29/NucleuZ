@@ -65,7 +65,7 @@ def send_invoice(invoices):
                 'billed_to': invoice['customer_name'], 
                 'contact': contact,
                 'status': 'QUEUED',
-                'message': f"Your package{invoice['customer_name']} test {url}",
+                'message': message_que,
                 'date': datetime.now()
             }
 
@@ -77,7 +77,7 @@ def send_invoice(invoices):
                 'billed_to': invoice['customer_name'],
                 'contact': contact,
                 'status': 'FAILED',
-                'message': f"Your package {invoice['customer_name']} test {url}",
+                'message': message_que,
                 'error': response_body['status']['description'],
                 'date': datetime.now()
             }
@@ -86,7 +86,7 @@ def send_invoice(invoices):
 
         url = "https://api.ultramsg.com/instance76526/messages/chat"
 
-        payload = f"token=06k9gq5wbaurogm7&to=+918608003636&body={message_que}" 
+        payload = f"token=06k9gq5wbaurogm7&to=+96890185109&body={message_que}" 
 
         payload = payload.encode('utf8').decode('iso-8859-1')
         headers = {'content-type': 'application/x-www-form-urlencoded'}
