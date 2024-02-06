@@ -16,6 +16,7 @@ import math
 from datetime import datetime
 from django.core.mail import EmailMessage, get_connection, send_mail
 from django.conf import settings
+import random
 
 @api_view(['GET'])
 def get_invoices(request :HttpRequest):
@@ -288,6 +289,8 @@ def get_feedbacks(request :HttpRequest):
 
 @api_view(['POST'])
 def send_mail(request :HttpRequest):
+
+    print(request.data['pdf'])
     try:
             with get_connection(  
             host=settings.EMAIL_HOST, 
@@ -298,10 +301,11 @@ def send_mail(request :HttpRequest):
         ) as connection:  
                 subject = 'Test Mail'
                 email_from = settings.EMAIL_HOST_USER  
-                recipient_list = ['pramodhdaniel5@gmail.com' ]  
+                recipient_list = ['pramodhdaniel5@gmail.com', request.data['mail'] ]  
                 message = 'Test Mail'
                 email = EmailMessage(subject, message, email_from, recipient_list, connection=connection)
-                email.attach('invoice.pdf',request.data['pdf'].read(), 'application/pdf')
+                email.attach(f'invoice {random.randrange(20, 50, 3)}.pdf '
+                             ,request.data['pdf'].read(), 'application/pdf')
                 email.send()
     except Exception as e:
         print(e)
