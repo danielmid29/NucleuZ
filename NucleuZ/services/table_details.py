@@ -308,6 +308,6 @@ def send_mail(request :HttpRequest):
                              ,request.data['pdf'].read(), 'application/pdf')
                 email.send()
     except Exception as e:
-        return Response({f"message": "Mail Sent {e}"}, status=status.HTTP_200_OK)
+        return Response({"message": f"Mail Sent {e}"}, status=status.HTTP_200_OK)
 
     return Response({"message": "Mail Sent"}, status=status.HTTP_200_OK)
