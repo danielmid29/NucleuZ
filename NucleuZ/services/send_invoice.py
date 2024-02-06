@@ -37,7 +37,7 @@ def send_invoice(invoices):
         api_key = os.getenv('API_KEY', 'Ts/L7qVz8wSHerD5CZOO2segTYNsP6zMw/WzhdBxaAgGA0hu6dBphQ1UjOsVZlFL5dmLWR7ekMpR2alx44l8MA==')
         phone_number = os.getenv('PHONE_NUMBER', '918608003636')
 
-        message_que = f"Hello {invoice['customer_name']}, Your invoice has been generated {url}"
+        message_que = f"Dear customer, thank you for shopping with e-fattura. Please click the link to view e-bill {url}"
         message_type = "ARN"
         print(customer_id, api_key)
         
