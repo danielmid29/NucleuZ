@@ -298,6 +298,7 @@ def send_mail(request :HttpRequest):
         username=settings.EMAIL_HOST_USER, 
         password=settings.EMAIL_HOST_PASSWORD, 
         use_tls=settings.EMAIL_USE_TLS  
+        
         ) as connection:  
                 subject = 'Test Mail'
                 email_from = settings.EMAIL_HOST_USER  

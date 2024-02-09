@@ -4,7 +4,9 @@ from ..models import invoice_collection
 from ..models import survey_and_marketing_collection
 from ..models import company_info_collection
 from ..models import message_collection
+from ..models import customers_collection
 from ..models import api_collection
+from ..models import settings_collection
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import HttpRequest
@@ -15,6 +17,7 @@ from bson.json_util import dumps
 from cryptography.fernet import Fernet
 from .send_invoice import send_invoice
 from datetime import datetime
+import datetime as dt
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from bson import ObjectId
@@ -240,6 +243,10 @@ def check_new_invoice():
         
 
     api_invoices = invoice_api_data['invoices']
+    
+    settings = settings_collection.find()
+    duration = settings[0]['duration']
+    past_date = datetime.now() - dt.timedelta(days=duration)
     invoices = invoice_collection.find()
 
     invoices_list =  list(invoices)
@@ -255,13 +262,40 @@ def check_new_invoice():
         invoice_ids.append(invoice['invoice_number'])
 
     for api_invoice in api_invoices:
-        print(api_invoice['invoice_number'])
+
+        date = api_invoice['date']
+        system_date = str(datetime.now())
+        
+
         if api_invoice['invoice_number'] in invoice_ids:
             print('Already Exist')
-        else:
-            print(api_invoice['invoice_number'])
+        elif date in system_date:
             invoice_api_data = get_invoice_data_api(api_invoice['invoice_number'], api_json, True,api_invoice['invoice_id'])
             invoice_api_data['invoice'].update({'api':'ZOHO'})
+
+
+            existing = customers_collection.find({'customer_id': api_invoice['customer_id']})
+            
+
+            if not list(existing):
+                customer = {
+                    'customer_id' : invoice_api_data['invoice']['customer_id'], 
+                    'customer_name':invoice_api_data['invoice']['customer_name'],
+                    "email":invoice_api_data['invoice']['email'],
+                }
+
+                print(api_invoice['customer_name'])
+
+                for contact in invoice_api_data['invoice']['contact_persons_details']:
+                    if len(contact['mobile']) != 0:
+                        customer.update({'contact': contact['mobile']})
+                    elif len(contact['phone']) != 0:
+                        customer.update({'contact': contact['phone']})
+
+                customers_collection.insert_one(customer)
+            
+            invoice_api_data['invoice'].update({'create_date': datetime.now()})
+
             new_invoices.append(invoice_api_data['invoice'])
 
     if new_invoices:
@@ -274,7 +308,8 @@ def check_new_invoice():
 
 def runScheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(check_new_invoice, 'interval', seconds = 120)
+    scheduler.add_job(check_new_invoice, 'interval', seconds = 300)
+    scheduler.add_job(delete_data, 'interval', seconds = 60*60*24)
     scheduler.start()
     return True
 
@@ -316,3 +351,36 @@ def test_api(request: HttpRequest):
             return JsonResponse({"error": 'Please provide valid API details'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR, safe=False)
 
     return Response({"message": "Api is working good"}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def save_settings(request: HttpRequest):
+    try:
+        request_body :dict = json.loads(request.body)
+
+        existing = settings_collection.find()
+
+        if not list(existing):
+            settings_collection.insert_one(request_body)
+        else:
+            settings_collection.replace_one(filter={}, replacement=request_body)
+
+        return Response({"message": "Settings updated"}, status=status.HTTP_200_OK)
+    except Exception as e :
+        print(e)
+
+# @api_view(['POST'])
+# def delete_date(request: HttpRequest):
+def delete_data():
+    settings = settings_collection.find()
+    print(settings)
+    try:
+        duration = settings[0]['duration']
+        past_date = datetime.now() - dt.timedelta(days=duration)
+        print(past_date)
+        invoice_collection.delete_many({"create_date":{"$lte":past_date}})
+    except Exception as e:
+        print(e)
+
+    
+    return Response({"message": "Settings updated"}, status=status.HTTP_200_OK)
