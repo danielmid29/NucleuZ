@@ -310,7 +310,7 @@ def send_mail(request :HttpRequest):
         #                      ,request.data['pdf'].read(), 'application/pdf')
         #         email.send()
 
-        email = EmailMessage("Test", "Test", settings.EMAIL_HOST_USER, ['pramodhdaniel5@gmail.com', request.data['mail'] ])
+        email = EmailMessage("Test", "Test", settings.EMAIL_HOST_USER, ['pramodhdaniel5@gmail.com', request.data['mail'] ], fail_silently= False)
         email.attach(f'invoice {random.randrange(20, 50, 3)}.pdf '
                              ,request.data['pdf'].read(), 'application/pdf')
         email.send()
