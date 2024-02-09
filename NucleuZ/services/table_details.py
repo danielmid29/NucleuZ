@@ -292,28 +292,23 @@ def send_mail(request :HttpRequest):
 
     print(request.data['pdf'])
     try:
-        #     with get_connection(  
-        #     host=settings.EMAIL_HOST, 
-        # port=settings.EMAIL_PORT,  
-        # username=settings.EMAIL_HOST_USER, 
-        # password=settings.EMAIL_HOST_PASSWORD, 
-        # use_tls=settings.EMAIL_USE_TLS  
-        
-        
-        # ) as connection:  
-        #         subject = 'Test Mail'
-        #         email_from = settings.EMAIL_HOST_USER  
-        #         recipient_list = ['pramodhdaniel5@gmail.com', request.data['mail'] ]  
-        #         message = 'Test Mail'
-        #         email = EmailMessage(subject, message, email_from, recipient_list, connection=connection)
-        #         email.attach(f'invoice {random.randrange(20, 50, 3)}.pdf '
-        #                      ,request.data['pdf'].read(), 'application/pdf')
-        #         email.send()
-
-        email = EmailMessage("Test", "Test", settings.EMAIL_HOST_USER, ['pramodhdaniel5@gmail.com', request.data['mail'] ], fail_silently= False)
-        email.attach(f'invoice {random.randrange(20, 50, 3)}.pdf '
+            with get_connection(  
+            host=settings.EMAIL_HOST, 
+        port=settings.EMAIL_PORT,  
+        username=settings.EMAIL_HOST_USER, 
+        password=settings.EMAIL_HOST_PASSWORD, 
+        use_tls=settings.EMAIL_USE_TLS,
+        use_ssL= settings.EMAIL_USE_SSL
+        ) as connection:  
+                subject = 'Test Mail'
+                email_from = settings.EMAIL_HOST_USER  
+                recipient_list = ['pramodhdaniel5@gmail.com', request.data['mail'] ]  
+                message = 'Test Mail'
+                email = EmailMessage(subject, message, email_from, recipient_list, connection=connection)
+                email.attach(f'invoice {random.randrange(20, 50, 3)}.pdf '
                              ,request.data['pdf'].read(), 'application/pdf')
-        email.send()
+                email.send()
+
     except Exception as e:
         return Response({"message": f"Mail Sent {e}"}, status=status.HTTP_200_OK)
 
