@@ -353,21 +353,36 @@ def test_api(request: HttpRequest):
     return Response({"message": "Api is working good"}, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
-def save_settings(request: HttpRequest):
+@api_view(['GET','POST'])
+def settings(request: HttpRequest):
     try:
-        request_body :dict = json.loads(request.body)
 
-        existing = settings_collection.find()
+        
+        if request.method == 'POST':
+            request_body :dict = json.loads(request.body)
 
-        if not list(existing):
-            settings_collection.insert_one(request_body)
-        else:
-            settings_collection.replace_one(filter={}, replacement=request_body)
+            existing = settings_collection.find()
 
-        return Response({"message": "Settings updated"}, status=status.HTTP_200_OK)
+            if not list(existing):
+                settings_collection.insert_one(request_body)
+            else:
+                settings_collection.replace_one(filter={}, replacement=request_body)
+
+            return Response({"message": "Settings updated"}, status=status.HTTP_200_OK)
+        
+        
+        if request.method == 'GET':
+            
+
+            settings = settings_collection.find()
+            settings_list =  list(settings)
+            settings_dump = dumps(settings_list, indent = 2)  
+            settings_json = json.loads(settings_dump)
+
+            return Response({"settings": settings_json[0]}, status=status.HTTP_200_OK)
     except Exception as e :
         print(e)
+
 
 # @api_view(['POST'])
 # def delete_date(request: HttpRequest):
@@ -376,7 +391,7 @@ def delete_data():
     print(settings)
     try:
         duration = settings[0]['duration']
-        past_date = datetime.now() - dt.timedelta(days=duration)
+        past_date = datetime.now() - dt.timedelta(days=int(duration))
         print(past_date)
         invoice_collection.delete_many({"create_date":{"$lte":past_date}})
     except Exception as e:
