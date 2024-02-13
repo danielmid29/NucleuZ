@@ -42,6 +42,7 @@ urlpatterns = [
     path('dashboard', dashboard.get_dashboard),
     path('template', template.save_template),
     path('send_email', table_details.send_mail),
+    path('settings', invoice_api.delete_data),
 ]
 
 invoice_api.runScheduler()
